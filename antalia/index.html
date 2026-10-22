@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antalia-2 Mini</title>
+<meta name="description" content="Antalia-2 Mini: tarayıcıda, cihazınızda çalışan küçük, açık kaynak Türkçe metinden konuşma modeli.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="manifest" href="app.webmanifest">
+<link rel="stylesheet" href="css/style.css">
+<script>
+  // theme before first paint: a stored choice wins, else the system preference
+  try { const t = localStorage.getItem("am-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <span class="wordmark">Antalia-2 Mini</span>
+    <nav class="toggles" aria-label="Görünüm">
+      <button type="button" class="lang" id="lang" aria-label="Switch to English">EN</button>
+      <button type="button" class="theme" id="theme" aria-label="Koyu tema">
+        <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h1 data-i18n="title">Tarayıcınızda çalışan Türkçe ses</h1>
+      <p class="lead" data-i18n="lead">Antalia-2 Mini, 7,62 milyon parametrelik açık kaynak bir Türkçe metinden konuşma modeli. Bu sayfada tamamen sizin cihazınızda çalışıyor: sunucu yok, yazdığınız metin hiçbir yere gönderilmiyor.</p>
+    </section>
+
+    <section class="studio" aria-labelledby="text-label">
+      <label id="text-label" for="text" class="label" data-i18n="textLabel">Metin</label>
+      <textarea id="text" rows="3" spellcheck="false" maxlength="2000">Merhaba! Antalia Mini artık bu bilgisayarda çalışıyor. Türkçe metinleri sese dönüştürebilirsiniz.</textarea>
+      <div class="examples" role="group" aria-label="Örnek cümleler" data-i18n-aria="examples">
+        <button type="button" class="chip" data-example="0" data-i18n="ex0">Ödeme</button>
+        <button type="button" class="chip" data-example="1" data-i18n="ex1">Randevu</button>
+        <button type="button" class="chip" data-example="2" data-i18n="ex2">Hava durumu</button>
+        <button type="button" class="chip" data-example="3" data-i18n="ex3">Iğdır'dan İstanbul'a</button>
+      </div>
+
+      <div class="controls">
+        <button type="button" id="play" class="play" disabled>
+          <svg class="i-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>
+          <svg class="i-stop" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6" y="6" width="12" height="12" fill="currentColor"/></svg>
+          <span id="play-label" data-i18n="loading">Model yükleniyor</span>
+        </button>
+        <div class="setting">
+          <label for="speed" data-i18n="speed">Hız</label>
+          <input type="range" id="speed" min="0.75" max="1.35" step="0.05" value="0.95">
+          <output id="speed-out" for="speed">0,95×</output>
+        </div>
+        <div class="setting steps" role="radiogroup" aria-label="Adım sayısı" data-i18n-aria="steps">
+          <span class="setting-name" data-i18n="stepsShort">Adım</span>
+          <label><input type="radio" name="steps" value="4"><span>4</span></label>
+          <label><input type="radio" name="steps" value="8" checked><span>8</span></label>
+        </div>
+      </div>
+      <div class="progress" id="progress" aria-hidden="true"><span></span></div>
+
+      <p class="ai-label"><span class="dot" aria-hidden="true"></span><span data-i18n="aiLabel">Yapay zekâ ile üretilmiş ses</span></p>
+    </section>
+
+    <section class="readout" aria-live="polite" aria-labelledby="readout-title">
+      <h2 id="readout-title" class="sr-only" data-i18n="readoutTitle">Ölçümler</h2>
+      <dl class="stats">
+        <div><dt data-i18n="ttfa">İlk ses</dt><dd><span id="r-ttfa">–</span><small>ms</small></dd></div>
+        <div><dt data-i18n="gen">Üretim süresi</dt><dd><span id="r-gen">–</span><small>ms</small></dd></div>
+        <div><dt data-i18n="len">Ses uzunluğu</dt><dd><span id="r-len">–</span><small>s</small></dd></div>
+        <div class="hero-stat"><dt data-i18n="rtf">Gerçek zamandan hızlı</dt><dd><span id="r-rtf">–</span><small>×</small></dd></div>
+      </dl>
+      <p class="status" id="status"></p>
+      <details class="reading">
+        <summary data-i18n="reading">Modelin okuduğu metin</summary>
+        <p id="model-text" class="mono"></p>
+      </details>
+      <p class="download" hidden id="download-row"><a id="download" download="antalia-mini.wav" data-i18n="download">WAV olarak indir</a></p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p data-i18n="foot">Apache-2.0 · Model, tarayıcınızda ONNX Runtime Web ile çalışır.</p>
+    <p><a href="https://speech.patientdesk.ai" rel="noopener">PatientDesk AI</a></p>
+  </footer>
+</div>
+</body>
+</html>

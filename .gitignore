@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*.log
+.vscode/
+.idea/
+
+# Kullanıcı verisi / üretimler
+work/
+
+# VoxCPM2 yerel dosyaları (boyut nedeniyle repoda yok)
+voxcpm2/engine-cuda/
+voxcpm2/engine-vulkan/
+voxcpm2/model/
+voxcpm2/studio/
+voxcpm2/repo/ayarlar.json
+voxcpm2/repo/sesler/
+voxcpm2/repo/onbellek/
+voxcpm2/repo/cikti/

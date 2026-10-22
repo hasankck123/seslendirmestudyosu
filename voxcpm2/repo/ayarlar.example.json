@@ -1,0 +1,9 @@
+{
+  "motor": "../engine-cuda/audiocpp_cli.exe",
+  "model": "../model/voxcpm2-q8_0.gguf",
+  "cuda_bin": "../engine-cuda",
+  "backend": "cuda",
+  "audiovae_threads": 6,
+  "motor_threads": 6,
+  "port": 8765
+}

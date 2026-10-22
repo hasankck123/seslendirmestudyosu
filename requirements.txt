@@ -1,0 +1,4 @@
+playwright>=1.40
+pillow>=10
+numpy>=1.24,<3
+soundfile>=0.12,<1

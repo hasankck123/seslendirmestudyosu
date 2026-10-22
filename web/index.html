@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="studio-token" content="__STUDIO_TOKEN__">
+<meta name="theme-color" content="#4f46e5">
+<title>Seslendirme Stüdyosu</title>
+<link rel="icon" href="/assets/logo.png" type="image/png">
+<script>
+/* Tema: kayıtlı tercih yoksa sistem tercihini kullan (ilk boyamadan önce). */
+(function () {
+  try {
+    var t = localStorage.getItem("studio-theme");
+    if (t !== "dark" && t !== "light") {
+      t = (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    }
+    document.documentElement.dataset.theme = t;
+  } catch (e) { document.documentElement.dataset.theme = "light"; }
+})();
+</script>
+<link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand-wrap">
+    <img class="brand" src="/assets/logo.png" alt="Kocak Eğitim">
+    <div class="titles">
+      <h1>Seslendirme Stüdyosu</h1>
+      <p class="sub">Soru görselini çöz, kalemle yaz, Antalia ile seslendir — tamamen bu bilgisayarda.</p>
+    </div>
+  </div>
+  <div class="head-right">
+    <div class="badges">
+      <span id="badge-engine" class="badge loading">Motor: başlatılıyor…</span>
+      <span id="badge-ffmpeg" class="badge">ffmpeg kontrol ediliyor…</span>
+    </div>
+    <button id="btn-theme" class="icon-btn" type="button" title="Açık/koyu tema">🌙</button>
+  </div>
+</header>
+
+<div id="net-info" class="net-info" hidden></div>
+
+<main class="layout">
+
+  <div class="col-main">
+
+    <section class="card">
+      <div class="card-head">
+        <h2><span class="step">1</span> Soru görseli</h2>
+        <span class="card-sub">JPG / PNG · sürükle-bırak veya Ctrl+V ile de ekleyebilirsin</span>
+      </div>
+      <div class="row">
+        <input id="video-path" type="text" spellcheck="false" autocomplete="off"
+               placeholder="Soru görseli tam yolu — ör. C:\Users\HUAWEI\Desktop\soru.png">
+        <button id="btn-browse" class="btn" type="button">📁 Gözat</button>
+        <button id="btn-open-video" class="btn primary" type="button">Aç</button>
+      </div>
+      <div class="row">
+        <label class="btn file">🖼️ Soru görseli yükle
+          <input id="video-file" type="file" accept="image/*" hidden>
+        </label>
+        <button id="btn-camera" class="btn" type="button">📷 Kamera</button>
+        <button id="btn-reset" class="btn" type="button">🧹 Yeni soru</button>
+        <span id="video-info" class="muted small"></span>
+      </div>
+      <div id="video-wrap" hidden>
+        <img id="video-img" hidden alt="Soru görseli">
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2><span class="step">2</span> Anlatım adımları</h2>
+        <span class="card-sub">AI ile taslak yaz veya elle düzenle</span>
+      </div>
+      <p class="hint">
+        Üslü ifadeleri kısayolla yaz: <code>4^3</code> veya <code>4³</code> → <b>“dört üzeri üç”</b> diye okunur;
+        <b>sonucu kendiliğinden söylenmez</b>. Sonuç videoda yazılıysa metne sen ekle (ör. “eşittir iki üzeri beş”).
+        Yüzde, TL gibi ifadeler otomatik okunur.
+      </p>
+      <div class="ai-style">
+        <label class="field"><span>AI uzunluk</span>
+          <select id="opt-ailen" title="AI taslağının uzunluğu">
+            <option value="kisa">Kısa</option>
+            <option value="dengeli">Dengeli</option>
+            <option value="detayli">Detaylı</option>
+          </select>
+        </label>
+        <label class="field"><span>Hitap</span>
+          <select id="opt-aiaud" title="AI'nın kime seslendiği">
+            <option value="ogrenci">Öğrenci</option>
+            <option value="veli">Veli</option>
+            <option value="genel">Genel</option>
+          </select>
+        </label>
+        <label class="field"><span>Hook</span>
+          <select id="opt-aihook" title="İlk cümlenin giriş tarzı">
+            <option value="merak">Merak</option>
+            <option value="soru">Soru</option>
+            <option value="iddia">İddia</option>
+          </select>
+        </label>
+      </div>
+      <div id="segments"></div>
+      <div class="row">
+        <button id="btn-ai" class="btn" type="button" title="Soruyu ücretsiz bir yapay zekâ modeline gönderir; model profesör titizliğiyle çözer, reels tarzı hook'lu ve ortaokul seviyesine uygun bir anlatımla adımları yazar (internet gerekir; genelde 20-60 sn sürer)">🤖 AI ile taslak yaz</button>
+        <button id="btn-add-seg" class="btn" type="button">＋ Adım ekle</button>
+        <button id="btn-auto-time" class="btn" type="button">⏱ Önerilen zamanlama</button>
+      </div>
+    </section>
+
+  </div>
+
+  <aside class="col-side">
+
+    <section class="card">
+      <div class="card-head">
+        <h2><span class="step">3</span> Üret ve kaydet</h2>
+        <span class="card-sub">Ses → video → kaydet</span>
+      </div>
+
+      <div class="settings">
+        <label class="field"><span>Motor</span>
+          <select id="opt-ttsmotor" title="Antalia hızlıdır (saniyeler). VoxCPM2 yüksek kalitedir ama 1 sn ses için ~20 sn çalışır.">
+            <option value="antalia">Antalia — hızlı</option>
+            <option value="voxcpm">VoxCPM2 — kalite</option>
+          </select>
+        </label>
+        <label class="field"><span>VoxCPM2 sesi</span>
+          <select id="opt-voxses" title="VoxCPM2 için hazır ya da tasarlanmış ses"></select>
+        </label>
+        <label class="field"><span>Hız</span>
+          <input id="opt-speed" type="number" min="0.75" max="1.2" step="0.05">
+        </label>
+        <label class="field"><span>Adım</span>
+          <select id="opt-steps">
+            <option value="4">4 — hızlı</option>
+            <option value="8">8 — varsayılan</option>
+          </select>
+        </label>
+        <label class="field"><span>Aralık (sn)</span>
+          <input id="opt-gap" type="number" min="0" max="2" step="0.05">
+        </label>
+        <label class="field"><span>Ton</span>
+          <input id="opt-seed" type="number" min="0" max="9999" step="1" title="Konuşma varyasyonu (ton). Değiştirip 1) Sesleri oluştur dersen okuma üslubu değişir.">
+        </label>
+        <div class="field span2">
+          <span>Kayıt klasörü</span>
+          <span class="with-btn">
+            <input id="opt-outdir" type="text" spellcheck="false" autocomplete="off">
+            <button id="btn-outdir" class="btn" type="button">📁</button>
+          </span>
+        </div>
+      </div>
+
+      <label class="chk" id="lbl-pen" title="Çözüm adımları görselin boş alanına el yazısıyla, kalemle yazılıyormuş gibi harf harf çizilir. Kapalıysa adımlar görselin altında panel olarak gösterilir.">
+        <input id="opt-pen" type="checkbox" checked> ✍️ Soru üzerine kalemle yaz
+      </label>
+
+      <div class="actions">
+        <button id="btn-synth" class="btn primary big" type="button">🔊 1) Sesleri oluştur</button>
+        <button id="btn-render" class="btn primary big" type="button" disabled>🎬 2) Videoya ekle (önizleme)</button>
+        <button id="btn-save" class="btn big" type="button" disabled>💾 3) Kaydet</button>
+      </div>
+
+      <div id="produce-status" class="status" hidden aria-live="polite"></div>
+
+      <div id="result" hidden>
+        <h3>Sonuç</h3>
+        <div class="row wrap">
+          <a id="dl-mp4" class="btn" download>⬇ Video (mp4)</a>
+          <a id="dl-wav" class="btn" download>⬇ Ses (wav)</a>
+          <a id="dl-mp3" class="btn" download>⬇ Ses (mp3)</a>
+          <a id="dl-txt" class="btn" download>⬇ Metin (txt)</a>
+          <button id="btn-openfolder" class="btn" type="button">📂 Klasör</button>
+        </div>
+        <div class="dl-note muted">📱 Telefonda <b>⬇</b> düğmesine dokun — dosya telefonun <b>İndirilenler</b> klasörüne iner.</div>
+        <div id="result-saved" class="saved-note" hidden></div>
+        <div id="result-warnings" class="warn" hidden></div>
+        <div class="players">
+          <video id="out-video" controls preload="metadata" hidden></video>
+          <audio id="out-audio" controls preload="metadata" hidden></audio>
+        </div>
+      </div>
+    </section>
+
+  </aside>
+
+</main>
+
+<footer class="foot">
+  Ses modeli: <b>Antalia-2 Mini</b> (cloud0day3, Apache-2.0) — tamamen yerel çalışır; internet gerekmez.
+  Video birleştirme: ffmpeg. Paylaşırken sesin yapay zekâ ile üretildiğini belirtmeyi unutma.
+</footer>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <b>Dosya seç</b>
+      <button id="modal-close" class="btn tiny" type="button">✕</button>
+    </div>
+    <div id="modal-path" class="muted small"></div>
+    <div id="modal-list" class="modal-list"></div>
+    <div class="modal-foot">
+      <button id="modal-up" class="btn" type="button">⬆ Üst klasör</button>
+      <button id="modal-pick" class="btn primary" type="button" disabled>Bu dosyayı seç</button>
+    </div>
+  </div>
+</div>
+
+<div id="cam-modal" class="modal" hidden>
+  <div class="modal-box cam-box">
+    <div class="modal-head">
+      <b>Soru fotoğrafı çek</b>
+      <button id="cam-close" class="btn tiny" type="button">✕</button>
+    </div>
+    <div class="cam-stage"><video id="cam-video" autoplay playsinline muted></video></div>
+    <div id="cam-status" class="muted small"></div>
+    <div class="modal-foot">
+      <span class="muted small">Kareyi soru görseline getir, sonra “Yakala”ya bas.</span>
+      <button id="cam-shot" class="btn primary" type="button">📸 Yakala</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById("btn-theme");
+  if (!btn) return;
+  function eff() {
+    return root.dataset.theme === "dark" ? "dark" : "light";
+  }
+  function icon() {
+    var dark = eff() === "dark";
+    btn.textContent = dark ? "☀️" : "🌙";
+    btn.title = dark ? "Açık temaya geç" : "Koyu temaya geç";
+    btn.setAttribute("aria-label", btn.title);
+  }
+  icon();
+  btn.addEventListener("click", function () {
+    var t = eff() === "dark" ? "light" : "dark";
+    root.dataset.theme = t;
+    try { localStorage.setItem("studio-theme", t); } catch (e) {}
+    icon();
+  });
+  if (window.matchMedia) {
+    try {
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
+        if (!localStorage.getItem("studio-theme")) {
+          root.dataset.theme = e.matches ? "dark" : "light";
+          icon();
+        }
+      });
+    } catch (e) {}
+  }
+})();
+</script>
+
+<script src="/web/app.js"></script>
+</body>
+</html>
